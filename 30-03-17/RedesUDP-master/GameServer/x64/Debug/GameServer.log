@@ -1,0 +1,4 @@
+﻿  UDPmanager.cpp
+d:\redesudp\30-03-17\redesudp-master\gameserver\udpmanager.cpp(59): warning C4267: 'argument': conversion from 'size_t' to 'uint32_t', possible loss of data
+  GameServer.vcxproj -> D:\RedesUDP\30-03-17\RedesUDP-master\x64\Debug\GameServer.exe
+  GameServer.vcxproj -> D:\RedesUDP\30-03-17\RedesUDP-master\x64\Debug\GameServer.pdb (Full PDB)
