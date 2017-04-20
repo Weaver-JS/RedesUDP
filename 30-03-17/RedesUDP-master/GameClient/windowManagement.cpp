@@ -10,7 +10,7 @@ void windowManagement::init(float x, float y, std::string chatName)
 	timer_client.restart();
 	screenDimensions.x = x;
 	screenDimensions.y = y;
-	windowRenderer.create(sf::VideoMode(screenDimensions.x, screenDimensions.y), chatName);
+	
 
 	main_character = new character(x/2,y/2);
 	if (!font.loadFromFile("courbd.ttf"))
@@ -21,56 +21,84 @@ void windowManagement::init(float x, float y, std::string chatName)
 	
 	udpManager.initConnection();
 	
-	 
+	windowRenderer.create(sf::VideoMode(screenDimensions.x, screenDimensions.y), chatName);
+	
 
-
-	int16_t xU = udpManager.getPlayer().getX();
-	int16_t yU = udpManager.getPlayer().getY();
-	main_character->setPosition(sf::Vector2<int16_t>(xU, yU));
 	
 
 }
 
 void windowManagement::loop()
 {
-	sf::Thread recv_thread(&UDPmanager::recv,&udpManager);
-
-	recv_thread.launch();
-	while (windowRenderer.isOpen())
-	{
-		sf::Event evento;
-		while (windowRenderer.pollEvent(evento))
-		{
-			windowStuff(evento);
-		}
-		if (udpManager.isDisconnected())
-		{
-			windowRenderer.close();
-		}
-		windowRenderer.draw(separator);
 	
-
-	if(timer_client.getElapsedTime() > sf::seconds(0.5f))
+	sf::Thread recv_thread(&UDPmanager::recv, &udpManager);
+	if (!udpManager.isDisconnected())
 	{
-		udpManager.ping();
-	}
-		//NETWORKING
-		if (playerList.size() != udpManager.getPlayerSize())
-		{
-			playerList.resize(udpManager.getPlayerSize());
-		}
-		for (int i = 0; i < playerList.size(); i++)
-		{
-		int16_t x = udpManager.getPlayer(i).getX(), y = udpManager.getPlayer(i).getY();
-			playerList[i]->setPosition(sf::Vector2<int16_t>(x, y));
-			windowRenderer.draw(*playerList[i]->getCircleshape());
-		}
 
+		int16_t xU = 0;
+		int16_t yU = 0;
+		main_character->setPosition(sf::Vector2<int16_t>(xU, yU));
+		playerList.push_back(main_character);
+	
+		//playerList[udpManager.getPlayer().getPlayerID()]->restartTime();
+		recv_thread.launch();
+		
+		while (windowRenderer.isOpen())
+		{
+			
+			sf::Event evento;
+			while (windowRenderer.pollEvent(evento))
+			{
+				windowStuff(evento);
+			}
+			if (udpManager.isDisconnected())
+			{
+				windowRenderer.close();
+			}
+			windowRenderer.draw(separator);
+			
 
-		//NETWORKING
-		windowRenderer.draw(*main_character->getCircleshape());
-		windowRenderer.display();
-		windowRenderer.clear();
+			if(timer_client.getElapsedTime() > sf::seconds(1))
+			{
+				udpManager.ping(playerList[udpManager.getPlayer().getPlayerID()]->getPosition().x,
+					playerList[udpManager.getPlayer().getPlayerID()]->getPosition().y);
+				
+
+				//NETWORKING
+				if (playerList.size() < udpManager.getPlayerSize())
+				{
+					for (int i = playerList.size(); i < udpManager.getPlayerSize(); i++)
+					{
+						character* p = new character(0, 0);
+						playerList.push_back(p);
+						//playerList.resize(udpManager.getPlayerSize());
+					}
+				}
+				for (int i = 0; i < playerList.size(); i++)
+				{
+					int16_t x = udpManager.getPlayer(i).getX(), y = udpManager.getPlayer(i).getY();
+					playerList[i]->setPosition(sf::Vector2<int16_t>(x, y));
+					
+				}
+				timer_client.restart();
+			}
+
+			for (int i = 0; i < playerList.size(); i++)
+			{
+				//playerList[i]->getVelocity().y += 1.0;
+				playerList[i]->updatePosition();
+				windowRenderer.draw(*playerList[i]->getCircleshape());
+			}
+
+				//NETWORKING
+		
+			//windowRenderer.draw(*main_character->getCircleshape());
+			windowRenderer.display();
+			windowRenderer.clear();
+			
+		}
+	
+		
 	}
 	recv_thread.terminate();
 }
@@ -80,21 +108,34 @@ void windowManagement::windowStuff(sf::Event & evento)
 	switch (evento.type)
 	{
 	case sf::Event::KeyPressed:
-		if (sf::Keyboard::Escape)
+		if (evento.key.code == sf::Keyboard::Escape)
 		{
-			while (!udpManager.isDisconnected())
-			{
 				udpManager.disconnect();
-			}
+			
 		}
-		
+	
+		if (evento.key.code == sf::Keyboard::A)
+		{
+			
+			playerList[udpManager.getPlayer().getPlayerID()]->getVelocity().x -= 10;
+		}
+		if (evento.key.code == sf::Keyboard::D)
+		{
+
+			playerList[udpManager.getPlayer().getPlayerID()]->getVelocity().x += 10;
+		}
+		if (evento.key.code == sf::Keyboard::Space)
+		{
+			playerList[udpManager.getPlayer().getPlayerID()]->jump();	
+		}
+		break;
 	case sf::Event::MouseButtonPressed:
 		
-	
-		
-		main_character->setPosition((sf::Vector2<int16_t>( (sf::Mouse::getPosition(windowRenderer).x- main_character->getCircleshape()->getRadius()),
+		playerList[udpManager.getPlayer().getPlayerID()]->setPosition((sf::Vector2<int16_t>( (sf::Mouse::getPosition(windowRenderer).x- main_character->getCircleshape()->getRadius()),
 			 (sf::Mouse::getPosition(windowRenderer).y - main_character->getCircleshape()->getRadius()))));
 		break;
+
+		
 	}
 }
 

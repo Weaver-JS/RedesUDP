@@ -12,37 +12,43 @@ UDPmanager::UDPmanager()
 
 UDPmanager::~UDPmanager()
 {
+	socket.unbind();
 }
 
 void UDPmanager::initConnection()
 {
-	/*sf::Socket::Status status = socket.bind(PORT);
-
-	if (status != sf::Socket::Done)
-	{
-		std::cout << "No se puede vincular al puerto: " << PORT << std::endl;
-	}
-	else if (status == sf::Socket::Done)
-	{
-
-
-	}*/
 	
+	client_clock.restart();
 
 	while (notConnected)
 	{
-		OutputMemoryBitStream ombs;
-		ombs.Write(PacketType::PT_HELLO, BINARYPACKETYPELENGTH);
-		//sf::sleep(sf::seconds(0.5));
-		if (sendMessage(ombs.GetBufferPtr(), IP, PORT, ombs.GetByteLength()))
+		if(client_clock.getElapsedTime() + sf::milliseconds(790)  >= sf::seconds(1.0f))
 		{
-			sf::IpAddress senderIP;
-			unsigned short senderPort;
-			sf::Packet packet;
-			if (socket.receive(packet, senderIP, senderPort) == sf::Socket::Done)
+			disconnected = true;
+			notConnected = false;
+		
+		}
+		else
+		{
+			OutputMemoryBitStream ombs;
+			ombs.Write(PacketType::PT_HELLO, BINARYPACKETYPELENGTH);
+			//sf::sleep(sf::seconds(0.5));
+			if (sendMessage(ombs.GetBufferPtr(), IP, PORT, ombs.GetByteLength()))
 			{
-				readMessage((char*)packet.getData(), packet.getDataSize(), senderIP, senderPort);
-				
+				sf::IpAddress senderIP;
+				unsigned short senderPort;
+				sf::Packet packet;
+				sf::Socket::Status status = socket.receive(packet, senderIP, senderPort) ;
+				if (status == sf::Socket::Done)
+				{
+					readMessage((char*)packet.getData(), packet.getDataSize(), senderIP, senderPort);
+
+				}
+				else if(status == sf::Socket::Status::Disconnected)
+				{
+					disconnected = true;
+					notConnected = false;
+				}
 			}
 		}
 
@@ -52,14 +58,23 @@ void UDPmanager::initConnection()
 	
 }
 
-void UDPmanager::ping()
+void UDPmanager::ping(uint16_t x, uint16_t y)
 {
+		OutputMemoryBitStream ombs_;
+		uint16_t id = player->getPlayerID();
+	ombs_.Write(PacketType::PT_PLAYER_POSITION, BINARYPACKETYPELENGTH);
+	ombs_.Write(id, BINARYPACKETYPELENGTH);
+	ombs_.Write(x, POSITION_BYNARY_LENGTH);
+	ombs_.Write(y, POSITION_BYNARY_LENGTH);
+	sendMessage(ombs_.GetBufferPtr(), IP, PORT, ombs_.GetByteLength());
+	sf::sleep(sf::milliseconds(200));
 	OutputMemoryBitStream ombs;
 	ombs.Write(PacketType::PT_PING, BINARYPACKETYPELENGTH);
 
 	
 
 	sendMessage(ombs.GetBufferPtr(), IP, PORT, ombs.GetBitLength());
+
 }
 
 void UDPmanager::readMessage(char*  _message, const size_t & _sizeMessage, sf::IpAddress & ip, unsigned short & port)
@@ -79,16 +94,22 @@ void UDPmanager::readMessage(char*  _message, const size_t & _sizeMessage, sf::I
 		break;
 	case PT_WELCOME:
 	{
-		uint16_t x = 0, y = 0;
+		uint16_t Id= 0, x = 0, y = 0;
 		player = new PlayerInfo(ip,port);
-		imbs.ReadBits(&player->getPlayerID(), BINARYPACKETYPELENGTH);
+		
+		imbs.ReadBits(&Id, BINARYPACKETYPELENGTH);
 		imbs.ReadBits(&player->getX() , POSITION_BYNARY_LENGTH);
 		imbs.ReadBits(&player->getY() , POSITION_BYNARY_LENGTH);
+		player->setPlayerID(Id);
+		playerList.push_back(player);
 		notConnected = false;
 	}
 		break;
 	case PT_DISCONNECT:
-		disconnected = true;
+		std::cout << "disconnecting" << std::endl;
+		disconnect();
+		
+		//disconnected = true;
 		break;
 	case PT_FULL:
 		disconnected = true;
@@ -104,6 +125,36 @@ void UDPmanager::readMessage(char*  _message, const size_t & _sizeMessage, sf::I
 		imbs.ReadBits(&id, BINARYPACKETYPELENGTH);
 		imbs.ReadBits(&playerList[id]->getX(), POSITION_BYNARY_LENGTH);
 		imbs.ReadBits(&playerList[id]->getY(), POSITION_BYNARY_LENGTH);
+		sendMessage((char*)imbs.GetBufferPtr(), ip, port, sizeof(imbs.GetBufferPtr()));
+	}
+		break;
+	case PT_SHUTDOWN:
+		std::cout << "SERVER SHUTTING DOWN" << std::endl;
+		std::cout << "Cerrando cliente en 3 segundos "  << std::endl;
+		disconnected = true;
+		
+		
+		break;
+	case PT_PLAYER_POSITION:
+	{
+		int ID = 1;
+		imbs.ReadBits(&ID, BINARYPACKETYPELENGTH);
+		
+		if (ID >= playerList.size())
+		{
+			PlayerInfo* p = new PlayerInfo(ip, port);
+			imbs.ReadBits(&p->getX(), POSITION_BYNARY_LENGTH);
+			imbs.ReadBits(&p->getY(), POSITION_BYNARY_LENGTH);
+			uint16_t id = ID;
+			p->setPlayerID(id);
+			playerList.push_back(p);
+		}
+		else
+		{
+			imbs.ReadBits(&playerList[ID]->getX(), POSITION_BYNARY_LENGTH);
+			imbs.ReadBits(&playerList[ID]->getY(), POSITION_BYNARY_LENGTH);
+
+		}
 	}
 		break;
 	default:
@@ -116,20 +167,41 @@ void UDPmanager::readMessage(char*  _message, const size_t & _sizeMessage, sf::I
 
 void UDPmanager::recv()
 {
-	sf::IpAddress senderIP;
-	unsigned short senderPort;
-	sf::Packet packet;
-	if (socket.receive(packet, senderIP, senderPort) == sf::Socket::Done)
+	while (!disconnected)
 	{
-		readMessage((char*)packet.getData(), packet.getDataSize(), senderIP, senderPort);
+		sf::IpAddress senderIP;
+		unsigned short senderPort;
+		sf::Packet packet;
+		if (socket.receive(packet, senderIP, senderPort) == sf::Socket::Done)
+		{
+			readMessage((char*)packet.getData(), packet.getDataSize(), senderIP, senderPort);
 
+		}
+		
 	}
 }
 bool UDPmanager::sendMessage(char * message, sf::IpAddress ip, unsigned short port,uint32_t sizeBuffer)
 {
-	sf::Packet packet;
-	packet.append(message, sizeBuffer);
-	return (socket.send(packet, ip, port) == sf::Socket::Done) ? true : false;
+	
+	if (client_clock.getElapsedTime() > sf::milliseconds(200))
+	{
+		sf::Packet packet;
+		packet.append(message, sizeBuffer);
+		sf::Socket::Status status = socket.send(packet, ip, port);
+		if (status == sf::Socket::Done)
+		{
+			return true;
+		}
+		else if (status == sf::Socket::Disconnected)
+		{
+			return false;
+		}
+
+		//return (socket.send(packet, ip, port) == sf::Socket::Done) ? true : false;
+		client_clock.restart();
+	}
+	
+	return true;
 	
 
 }
@@ -153,16 +225,36 @@ int  UDPmanager::getPlayerSize()
 
 void UDPmanager::disconnect()
 {
-	OutputMemoryBitStream ombs;
-	ombs.Write(PacketType::PT_DISCONNECT, BINARYPACKETYPELENGTH);
+	shutdown_Clock.restart();
+	while (!disconnected)
+	{
+		if(shutdown_Clock.getElapsedTime() > sf::seconds(3.0))
+		{
+			disconnected = true;
+		}
+		else
+		{
+		
+				OutputMemoryBitStream ombs;
+				ombs.Write(PacketType::PT_DISCONNECT, BINARYPACKETYPELENGTH);
 
-	
 
-	sendMessage(ombs.GetBufferPtr(), IP, PORT, ombs.GetBitLength());
+
+				sendMessage(ombs.GetBufferPtr(), IP, PORT, ombs.GetBitLength());
+				
+				client_clock.restart();
+			
+		}
+	}
 	
 }
 
 bool UDPmanager::isDisconnected()
 {
 	return disconnected;
+}
+
+bool UDPmanager::getNotConnected()
+{
+	return notConnected;
 }

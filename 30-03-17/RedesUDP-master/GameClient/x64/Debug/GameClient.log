@@ -1,7 +1,5 @@
-﻿  windowManagement.cpp
-d:\redesudp\30-03-17\redesudp-master\gameclient\windowmanagement.cpp(11): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-d:\redesudp\30-03-17\redesudp-master\gameclient\windowmanagement.cpp(12): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-d:\redesudp\30-03-17\redesudp-master\gameclient\windowmanagement.cpp(15): warning C4244: 'argument': conversion from 'float' to 'int16_t', possible loss of data
-d:\redesudp\30-03-17\redesudp-master\gameclient\windowmanagement.cpp(95): warning C4244: 'argument': conversion from 'float' to 'int16_t', possible loss of data
+﻿  UDPmanager.cpp
+d:\redesudp\30-03-17\redesudp-master\gameclient\udpmanager.cpp(85): warning C4267: 'argument': conversion from 'size_t' to 'uint32_t', possible loss of data
+d:\redesudp\30-03-17\redesudp-master\gameclient\udpmanager.cpp(223): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
   GameClient.vcxproj -> D:\RedesUDP\30-03-17\RedesUDP-master\x64\Debug\GameClient.exe
   GameClient.vcxproj -> D:\RedesUDP\30-03-17\RedesUDP-master\x64\Debug\GameClient.pdb (Full PDB)
