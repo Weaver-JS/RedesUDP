@@ -23,6 +23,8 @@
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>GameClient</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <ProjectName>
+    </ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -154,6 +156,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AccumMovClient.cpp" />
     <ClCompile Include="character.cpp" />
     <ClCompile Include="Grid.cpp" />
     <ClCompile Include="Source.cpp" />
@@ -162,6 +165,7 @@
     <ClCompile Include="World.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AccumMovClient.h" />
     <ClInclude Include="character.h" />
     <ClInclude Include="Grid.h" />
     <ClInclude Include="UDPmanager.h" />

@@ -1,4 +1,13 @@
 ﻿  UDPmanager.cpp
-d:\redesudp\30-03-17\redesudp-master\gameserver\udpmanager.cpp(59): warning C4267: 'argument': conversion from 'size_t' to 'uint32_t', possible loss of data
-  GameServer.vcxproj -> D:\RedesUDP\30-03-17\RedesUDP-master\x64\Debug\GameServer.exe
-  GameServer.vcxproj -> D:\RedesUDP\30-03-17\RedesUDP-master\x64\Debug\GameServer.pdb (Full PDB)
+c:\users\weaver\desktop\actualwork\redesudp-master\gameserver\udpmanager.cpp(285): warning C4244: '-=': conversion from 'double' to 'int16_t', possible loss of data
+c:\users\weaver\desktop\actualwork\redesudp-master\gameserver\udpmanager.cpp(299): warning C4244: '+=': conversion from 'double' to 'int16_t', possible loss of data
+c:\users\weaver\desktop\actualwork\redesudp-master\gameserver\udpmanager.cpp(326): warning C4307: '*': integral constant overflow
+c:\users\weaver\desktop\actualwork\redesudp-master\gameserver\udpmanager.cpp(329): warning C4307: '*': integral constant overflow
+c:\users\weaver\desktop\actualwork\redesudp-master\gameserver\udpmanager.cpp(357): warning C4267: 'argument': conversion from 'size_t' to 'uint32_t', possible loss of data
+c:\users\weaver\desktop\actualwork\redesudp-master\gameserver\udpmanager.cpp(416): warning C4267: '=': conversion from 'size_t' to 'int16_t', possible loss of data
+  Source.cpp
+  AccumMoveServer.cpp
+c:\users\weaver\desktop\actualwork\redesudp-master\gameserver\accummoveserver.cpp(28): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+  Generating Code...
+  GameServer.vcxproj -> C:\Users\Weaver\Desktop\ActualWork\RedesUDP-master\x64\Debug\GameServer.exe
+  GameServer.vcxproj -> C:\Users\Weaver\Desktop\ActualWork\RedesUDP-master\x64\Debug\GameServer.pdb (Full PDB)

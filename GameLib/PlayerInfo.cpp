@@ -6,6 +6,17 @@ PlayerInfo::PlayerInfo(sf::IpAddress & ip, unsigned short & port)
 {
 	player_ip = ip;
 	player_port = port;
+	x = 0;
+	y = 0;
+	win = false;
+}
+
+PlayerInfo::PlayerInfo()
+{
+	x = 0;
+	y = 0;
+	playerID = -1;
+	win = false;
 }
 
 PlayerInfo::~PlayerInfo()
@@ -32,6 +43,11 @@ void PlayerInfo::setPlayerPort(unsigned short & port)
 	player_port = port;
 }
 
+void PlayerInfo::setPlayerID(uint16_t & id)
+{
+	playerID = id;
+}
+
 uint16_t & PlayerInfo::getX()
 {
 	return x;
@@ -43,7 +59,12 @@ uint16_t & PlayerInfo::getY()
 	return y;
 }
 
-short & PlayerInfo::getPlayerID()
+uint16_t & PlayerInfo::getPlayerID()
 {
 	return playerID;
+}
+
+bool & PlayerInfo::getPlayerWIn()
+{
+	return win;
 }
